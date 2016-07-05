@@ -2,6 +2,10 @@ version: '2'
 
 services:
 
+    shared-data:
+        build: shared-data
+        hostname: shared-data
+
     koji-db:
         build: koji-db
         hostname: koji-db
