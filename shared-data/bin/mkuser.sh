@@ -1,7 +1,7 @@
 #!/bin/bash
 set -xeuo pipefail
 
-IP=$(find-ip.py || "koji-hub.local")
+IP="koji-hub"
 
 cd /etc/pki/koji
 
@@ -48,6 +48,7 @@ ca = ${client}/clientca.crt
 serverca = ${client}/serverca.crt
 EOF
 
+# TODO: What's this used for?
 cat <<EOF > $client/config.json
 {
 	"url": "https://${IP}/kojihub",

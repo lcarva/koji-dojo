@@ -17,17 +17,11 @@ services:
     koji-hub:
         build: hub
         hostname: koji-hub
-        volumes:
-            - /opt/koji:/opt/koji:rw
-            - /opt/koji-clients:/opt/koji-clients:rw
-        links:
-            - koji-db
+        volumes_from:
+            - shared-data
 
     koji-client:
         build: client
         hostname: koji-client
         volumes_from:
-            - koji-hub:rw
-        links:
-            - koji-hub
-
+            - shared-data

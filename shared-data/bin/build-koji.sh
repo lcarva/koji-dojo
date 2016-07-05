@@ -13,8 +13,8 @@ easy_install coverage-4.1.tar.gz
 rm -f coverage-4.1.tar.gz
 
 cd /opt/koji
-# Remove previous build to avoid multilib errors.
+# Remove previous build to avoid multilib errors
 rm -rf noarch
 make test-rpm
 
-# yum -y localinstall noarch/koji-hub*.rpm noarch/koji-1.*.rpm noarch/koji-web*.rpm
+yum -y localinstall noarch/koji-1.*.rpm

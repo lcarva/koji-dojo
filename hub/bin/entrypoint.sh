@@ -1,16 +1,23 @@
 #!/bin/bash
+set -xeuo pipefail
 
-build-koji.sh
-setup.sh
+# TODO: Verify this is ok when restarting container
+pushd /shared/koji-source > /dev/null
+yum -y localinstall \
+    noarch/koji-hub*.rpm \
+    noarch/koji-1.*.rpm \
+    noarch/koji-web*.rpm
+popd > /dev/null
 
-IP=$(find-ip.py)
+rm -rf /opt/koji-clients
+ln -s /shared/koji-clients /opt/koji-clients
+rm -rf /etc/pki/koji
+ln -s /shared/koji-pki /etc/pki/koji
+# TODO: This can probably be removed?
+chown -R nobody:nobody /opt/koji-clients
 
-# add koji-hub to hosts if not present
-if grep -q -v "koji-hub" /etc/hosts; then echo ${IP} koji-hub >> /etc/hosts; fi
+mkdir -p /root/.koji
+ln -s /opt/koji-clients/kojiadmin/config /root/.koji/config
 
-echo "Starting ssh on ${IP} (use ssh root@${IP} with password mypassword"
-/etc/init.d/sshd start
-echo "You can connect directly by running"
-echo "      docker exec -ti koji-hub /bin/bash"
-echo "Starting HTTPd on ${IP}"
+for ip in `hostname -I`; do echo 'http://'$ip'/koji'; done
 httpd -D FOREGROUND
