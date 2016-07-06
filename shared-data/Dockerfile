@@ -3,7 +3,7 @@ MAINTAINER Luiz Carvalho <lucarval@redhat.com>
 
 RUN sed -i '/nodocs/d' /etc/yum.conf
 
-VOLUME ["/shared"]
+VOLUME ["/opt/koji", "/opt/koji-clients", "/etc/pki/koji"]
 
 RUN yum -y update && \
     yum -y install \
@@ -38,6 +38,7 @@ RUN yum -y update && \
         yum-utils \
     ; yum clean all
 
+ADD opt/ /opt/
 ADD etc/ /etc/
 ADD bin/ /usr/local/bin/
 ADD root/ /root/
@@ -51,6 +52,7 @@ RUN echo 'root:mypassword' | chpasswd
 
 EXPOSE 80
 
+RUN mkdir -p /opt/local
 RUN /usr/local/bin/build-koji.sh
 RUN /usr/local/bin/setup.sh
 

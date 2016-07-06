@@ -3,7 +3,7 @@ set -xeuo pipefail
 
 IP="koji-hub"
 
-cd /etc/pki/koji
+cd /opt/local/pki/koji
 
 #if you change your certificate authority name to something else you will need to change the caname value to reflect the change.
 caname="koji"
@@ -29,23 +29,24 @@ openssl pkcs12 -clcerts -passin "pass:${password}" -passout "pass:${password}" -
 
 cat certs/${user}-crtonly.crt private/${user}.key > certs/${user}.crt
 
-client=/opt/koji-clients/${user}
+client=/opt/local/koji-clients/${user}
+client_shared=/opt/koji-clients/${user}
 
 rm -rf $client
 mkdir -p $client
-cp /etc/pki/koji/certs/${user}.crt $client/client.crt   # NOTE: It is IMPORTANT you use the aggregated form
-cp /etc/pki/koji/certs/${user}.pem $client/client.pem
-cp /etc/pki/koji/certs/${user}_browser_cert.p12 $client/client_browser_cert.p12
-cp /etc/pki/koji/koji_ca_cert.crt $client/clientca.crt
-cp /etc/pki/koji/koji_ca_cert.crt $client/serverca.crt
+cp /opt/local/pki/koji/certs/${user}.crt $client/client.crt   # NOTE: It is IMPORTANT you use the aggregated form
+cp /opt/local/pki/koji/certs/${user}.pem $client/client.pem
+cp /opt/local/pki/koji/certs/${user}_browser_cert.p12 $client/client_browser_cert.p12
+cp /opt/local/pki/koji/koji_ca_cert.crt $client/clientca.crt
+cp /opt/local/pki/koji/koji_ca_cert.crt $client/serverca.crt
 
 cat <<EOF > $client/config
 [koji]
 server = https://${IP}/kojihub
 authtype = ssl
-cert = ${client}/client.crt
-ca = ${client}/clientca.crt
-serverca = ${client}/serverca.crt
+cert = ${client_shared}/client.crt
+ca = ${client_shared}/clientca.crt
+serverca = ${client_shared}/serverca.crt
 EOF
 
 # TODO: What's this used for?
@@ -56,10 +57,10 @@ cat <<EOF > $client/config.json
 	"pem-url": "https://${IP}/koji-clients/${user}/client.pem",
 	"ca-url": "https://${IP}/koji-clients/${user}/clientca.crt",
 	"serverca-url": "https://${IP}/koji-clients/${user}/serverca.crt",
-	"crt": "${client}/client.crt",
-	"pem": "${client}/client.pem",
-	"ca": "${client}/clientca.crt",
-	"serverca": "${client}/serverca.crt"
+	"crt": "${client_shared}/client.crt",
+	"pem": "${client_shared}/client.pem",
+	"ca": "${client_shared}/clientca.crt",
+	"serverca": "${client_shared}/serverca.crt"
 }
 EOF
 

@@ -26,9 +26,9 @@ generate_ssl_certificates() {
 
 	IP=$(find-ip.py || echo "kojihub.local")
 
-	mkdir -p /etc/pki/koji/{certs,private,confs}
+	mkdir -p /opt/local/pki/koji/{certs,private,confs}
 
-	cd /etc/pki/koji
+	cd /opt/local/pki/koji
 
 	touch index.txt
 	echo 01 > serial
@@ -48,7 +48,7 @@ generate_ssl_certificates() {
 	mkuser.sh testadmin admin
 	mkuser.sh testuser
 
-	chown -R nobody:nobody /opt/koji-clients
+	chown -R nobody:nobody /opt/local/koji-clients
 }
 
 create_koji_config_for_root() {
@@ -73,7 +73,7 @@ else
 	create_koji_folders
 fi
 
-if [ -f /etc/pki/koji/certs/kojihub.crt ]
+if [ -f /opt/local/pki/koji/certs/kojihub.crt ]
 then
     echo "Ssl certificates already generated"
 else

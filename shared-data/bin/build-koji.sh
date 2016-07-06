@@ -1,9 +1,7 @@
 #!/bin/bash
 set -xeuo pipefail
 
-if [ ! -d "/opt/koji/.git" ]; then
-    git clone https://pagure.io/koji.git /opt/koji
-fi
+git clone https://pagure.io/koji.git /opt/local/koji
 
 # install the latest version of python-coverage module
 wget https://bootstrap.pypa.io/ez_setup.py
@@ -12,9 +10,7 @@ wget https://pypi.python.org/packages/2d/10/6136c8e10644c16906edf4d9f7c782c0f2e7
 easy_install coverage-4.1.tar.gz
 rm -f coverage-4.1.tar.gz
 
-cd /opt/koji
-# Remove previous build to avoid multilib errors
-rm -rf noarch
+pushd /opt/local/koji > /dev/null
 make test-rpm
-
 yum -y localinstall noarch/koji-1.*.rpm
+popd > /dev/null
