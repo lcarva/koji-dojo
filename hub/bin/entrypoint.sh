@@ -2,12 +2,10 @@
 set -xeuo pipefail
 
 # TODO: Verify this is ok when restarting container
-pushd /opt/koji > /dev/null
 yum -y localinstall \
-    noarch/koji-hub*.rpm \
-    noarch/koji-1.*.rpm \
-    noarch/koji-web*.rpm
-popd > /dev/null
+    /opt/koji/noarch/koji-hub*.rpm \
+    /opt/koji/noarch/koji-1.*.rpm \
+    /opt/koji/noarch/koji-web*.rpm
 
 # TODO: This can probably be removed?
 chown -R nobody:nobody /opt/koji-clients

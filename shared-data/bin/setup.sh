@@ -11,20 +11,8 @@ create_koji_folders() {
 	chown apache.apache *
 }
 
-allow_read_logs() {
-	# selinux is disabled
-	# setsebool -P httpd_can_network_connect_db=1 allow_httpd_anon_write=1
-	# chcon -R -t public_content_rw_t /mnt/koji/*
-
-	chmod -R o+rx /var/log
-	chmod -R g+rs /var/log
-	chgrp -R nobody /var/log
-}
-
 generate_ssl_certificates() {
 	echo "Generate SSL certificates"
-
-	IP=$(find-ip.py || echo "kojihub.local")
 
 	mkdir -p /opt/local/pki/koji/{certs,private,confs}
 

@@ -1,27 +1,10 @@
 #!/bin/bash
+set -xeuo pipefail
 
-while true; do
-	echo "Waiting for koji-hub to start..."
-    hubstart=$(curl -X GET http://koji-hub/)
-	echo $hubstart
-	if [ "x$hubstart" != "x" ]; then
-		echo "koji-hub started:"
-	    break
-	fi
-	sleep 5
-done
+# TODO: Verify this is ok when restarting container
+yum -y localinstall /opt/koji/noarch/koji-1*.rpm
 
-set -x
-
-if [ -d /opt/koji/noarch ]; then
-	yum -y localinstall /opt/koji/noarch/koji-1*.rpm
-else
-	echo "No koji RPM to install! Installing from EPEL"
-	yum -y install epel-release
-  yum -y install koji
-fi
-
-mkdir /root/{.koji,bin}
+mkdir -p /root/{.koji,bin}
 echo "Generating user-specific koji client links and configs"
 for userdir in $(ls -d /opt/koji-clients/*); do
 	user=$(basename $userdir)
@@ -50,7 +33,5 @@ ls -1 /root/bin/koji-*
 ssh-keygen -t rsa -N '' -f /etc/ssh/ssh_host_rsa_key
 ssh-keygen -t dsa -N '' -f /etc/ssh/ssh_host_dsa_key
 
-IP=$(find-ip.py)
-
-echo "SSHd listening on: ${IP}:22"
+for ip in `hostname -I`; do echo 'SSH:' $ip':22'; done
 /usr/sbin/sshd -D
