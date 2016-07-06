@@ -1,77 +1,51 @@
 #!/bin/bash
 set -xeuo pipefail
 
-create_koji_folders() {
-	echo "Create Koji folders"
+# Create folder structure local data
+mkdir -p /opt/local/{koji,koji-clients}
+mkdir -p /opt/local/pki/koji/{certs,private,confs}
 
-	cd /mnt
-	mkdir koji
-	cd koji
-	mkdir {packages,repos,work,scratch}
-	chown apache.apache *
-}
+# Setup some root stuff
+chmod 600 /root/.pgpass
+chmod +x /usr/local/bin/*
+echo 'root:mypassword' | chpasswd
 
-generate_ssl_certificates() {
-	echo "Generate SSL certificates"
+# Create folder structure for koji's static assets
+mkdir -p /mnt/koji/{packages,repos,work,scratch}
+chown apache.apache /mnt/koji/*
 
-	mkdir -p /opt/local/pki/koji/{certs,private,confs}
+# Generate CA certificate
+pushd /opt/local/pki/koji > /dev/null
 
-	cd /opt/local/pki/koji
+touch index.txt
+echo 01 > serial
 
-	touch index.txt
-	echo 01 > serial
+# CA
+conf=confs/ca.cnf
+cp ssl.cnf $conf
 
-	# CA
-	conf=confs/ca.cnf
-	cp ssl.cnf $conf
+openssl genrsa -out private/koji_ca_cert.key 2048
+openssl req -config $conf -new -x509 \
+    -subj "/C=US/ST=Drunken/L=Bed/O=IT/CN=koji-hub" \
+    -days 3650 \
+    -key private/koji_ca_cert.key \
+    -out koji_ca_cert.crt \
+    -extensions v3_ca
 
-	openssl genrsa -out private/koji_ca_cert.key 2048
-	openssl req -config $conf -new -x509 -subj "/C=US/ST=Drunken/L=Bed/O=IT/CN=koji-hub" -days 3650 -key private/koji_ca_cert.key -out koji_ca_cert.crt -extensions v3_ca
+cp private/koji_ca_cert.key private/kojihub.key
+cp koji_ca_cert.crt certs/kojihub.crt
+popd > /dev/null
 
-	cp private/koji_ca_cert.key private/kojihub.key
-	cp koji_ca_cert.crt certs/kojihub.crt
+# Generate users certificates
+mkuser.sh kojiweb
+mkuser.sh kojiadmin
+mkuser.sh testadmin
+mkuser.sh testuser
+chown -R nobody:nobody /opt/local/koji-clients
 
-	mkuser.sh kojiweb admin
-	mkuser.sh kojiadmin admin
-	mkuser.sh testadmin admin
-	mkuser.sh testuser
+# Enable kojiadmin config for root user
+mkdir -p /root/.koji
+ln -s /opt/local/koji-clients/kojiadmin/config /root/.koji/config
 
-	chown -R nobody:nobody /opt/local/koji-clients
-}
-
-create_koji_config_for_root() {
-	echo "Create /root/.koji/config for user root"
-
-	mkdir /root/.koji
-
-	cat <<EOF >> /root/.koji/config
-[koji]
-server = https://localhost/kojihub
-authtype = ssl
-cert = /opt/koji-clients/kojiadmin/client.crt
-ca = /opt/koji-clients/kojiadmin/clientca.crt
-serverca = /opt/koji-clients/kojiadmin/serverca.crt
-EOF
-}
-
-if [ -d /mnt/koji ]
-then
-    echo "Koji folders exist"
-else
-	create_koji_folders
-fi
-
-if [ -f /opt/local/pki/koji/certs/kojihub.crt ]
-then
-    echo "Ssl certificates already generated"
-else
-	generate_ssl_certificates
-fi
-
-if [ -f /root/.koji/config ]
-then
-    echo "Ssl certificates already generated"
-else
-	create_koji_config_for_root
-fi
-
+# We're good to build koji
+build-koji.sh

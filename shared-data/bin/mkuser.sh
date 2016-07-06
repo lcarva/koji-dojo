@@ -1,14 +1,15 @@
 #!/bin/bash
 set -xeuo pipefail
 
+pushd /opt/local/pki/koji > /dev/null
+
 IP="koji-hub"
 
-cd /opt/local/pki/koji
-
-#if you change your certificate authority name to something else you will need to change the caname value to reflect the change.
+# If you change your certificate authority name to
+# something else you will need to change the caname
+# value to reflect the change.
 caname="koji"
 
-# user is equal to parameter one or the first argument when you actually run the script
 user=$1
 password="mypassword"
 conf=confs/${user}-ssl.cnf
@@ -16,16 +17,33 @@ conf=confs/${user}-ssl.cnf
 openssl genrsa -out private/${user}.key 2048
 cp ssl.cnf $conf
 
-openssl req -config $conf -new -nodes -out certs/${user}.csr -key private/${user}.key \
-            -subj "/C=US/ST=Drunken/L=Bed/O=IT/CN=${user}/emailAddress=${user}@kojihub.local"
+openssl req -config $conf -new -nodes \
+    -out certs/${user}.csr \
+    -key private/${user}.key \
+    -subj "/C=US/ST=Drunken/L=Bed/O=IT/CN=${user}/emailAddress=${user}@kojihub.local"
 
-openssl ca -config $conf -batch -keyfile private/${caname}_ca_cert.key -cert ${caname}_ca_cert.crt \
-		   -out certs/${user}-crtonly.crt -outdir certs -infiles certs/${user}.csr
+openssl ca -config $conf -batch \
+    -keyfile private/${caname}_ca_cert.key \
+    -cert ${caname}_ca_cert.crt \
+    -out certs/${user}-crtonly.crt \
+    -outdir certs \
+    -infiles certs/${user}.csr
 
-openssl pkcs12 -export -inkey private/${user}.key -passout "pass:${password}" -in certs/${user}-crtonly.crt -certfile ${caname}_ca_cert.crt -CAfile ${caname}_ca_cert.crt -chain -clcerts \
-			   -out certs/${user}_browser_cert.p12
+openssl pkcs12 -export \
+    -inkey private/${user}.key \
+    -passout "pass:${password}" \
+    -in certs/${user}-crtonly.crt \
+    -certfile ${caname}_ca_cert.crt \
+    -CAfile ${caname}_ca_cert.crt \
+    -chain -clcerts \
+    -out certs/${user}_browser_cert.p12
 
-openssl pkcs12 -clcerts -passin "pass:${password}" -passout "pass:${password}" -in certs/${user}_browser_cert.p12 -inkey private/${user}.key -out certs/${user}.pem
+openssl pkcs12 -clcerts \
+    -passin "pass:${password}" \
+    -passout "pass:${password}" \
+    -in certs/${user}_browser_cert.p12 \
+    -inkey private/${user}.key \
+    -out certs/${user}.pem
 
 cat certs/${user}-crtonly.crt private/${user}.key > certs/${user}.crt
 
@@ -34,13 +52,15 @@ client_shared=/opt/koji-clients/${user}
 
 rm -rf $client
 mkdir -p $client
-cp /opt/local/pki/koji/certs/${user}.crt $client/client.crt   # NOTE: It is IMPORTANT you use the aggregated form
+# NOTE: It is IMPORTANT you use the aggregated form
+cp /opt/local/pki/koji/certs/${user}.crt $client/client.crt
 cp /opt/local/pki/koji/certs/${user}.pem $client/client.pem
 cp /opt/local/pki/koji/certs/${user}_browser_cert.p12 $client/client_browser_cert.p12
 cp /opt/local/pki/koji/koji_ca_cert.crt $client/clientca.crt
 cp /opt/local/pki/koji/koji_ca_cert.crt $client/serverca.crt
 
-cat <<EOF > $client/config
+# Generate user config
+cat << EOF > $client/config
 [koji]
 server = https://${IP}/kojihub
 authtype = ssl
@@ -49,19 +69,4 @@ ca = ${client_shared}/clientca.crt
 serverca = ${client_shared}/serverca.crt
 EOF
 
-# TODO: What's this used for?
-cat <<EOF > $client/config.json
-{
-	"url": "https://${IP}/kojihub",
-	"crt-url": "https://${IP}/koji-clients/${user}/client.crt",
-	"pem-url": "https://${IP}/koji-clients/${user}/client.pem",
-	"ca-url": "https://${IP}/koji-clients/${user}/clientca.crt",
-	"serverca-url": "https://${IP}/koji-clients/${user}/serverca.crt",
-	"crt": "${client_shared}/client.crt",
-	"pem": "${client_shared}/client.pem",
-	"ca": "${client_shared}/clientca.crt",
-	"serverca": "${client_shared}/serverca.crt"
-}
-EOF
-
-chown -R nobody:nobody ${client}
+popd > /dev/null

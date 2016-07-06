@@ -3,7 +3,8 @@
 
 /* Create users */
 INSERT INTO users (name, status, usertype) VALUES
-    /* ('kojiuser', 0, 0), */
+    ('testadmin', 0, 0),
+    ('testuser', 0, 0),
     ('kojiweb', 0, 0),
     ('kojiadmin', 0, 0);
 
