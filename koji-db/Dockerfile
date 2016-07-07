@@ -1,8 +1,7 @@
 FROM postgres:9.4
 MAINTAINER Luiz Carvalho <lucarval@redhat.com>
 
-RUN \
-    apt-get update && \
+RUN apt-get update && \
     apt-get install -y curl && \
     apt-get clean
 
