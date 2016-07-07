@@ -13,5 +13,9 @@ chown -R nobody:nobody /opt/koji-clients
 mkdir -p /root/.koji
 ln -s /opt/koji-clients/kojiadmin/config /root/.koji/config
 
-for ip in `hostname -I`; do echo 'http://'$ip'/koji'; done
+for ip in `hostname -I`;
+do
+    echo 'http://'$ip'/koji';
+    echo 'http://'$ip'/kojifiles';
+done
 httpd -D FOREGROUND
