@@ -24,4 +24,4 @@ ADD root/ /root/
 
 RUN /usr/local/bin/setup.sh
 
-ENTRYPOINT /usr/local/bin/entrypoint.sh
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]

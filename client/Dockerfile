@@ -1,5 +1,5 @@
 FROM centos:centos6
-MAINTAINER John Casey <jcasey@redhat.com>
+MAINTAINER Luiz Carvalho <lucarval@redhat.com>
 
 RUN yum -y update \
     ; yum clean all

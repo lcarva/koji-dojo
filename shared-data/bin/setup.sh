@@ -10,10 +10,6 @@ chmod 600 /root/.pgpass
 chmod +x /usr/local/bin/*
 echo 'root:mypassword' | chpasswd
 
-# Create folder structure for koji's static assets
-mkdir -p /mnt/koji/{packages,repos,work,scratch}
-chown apache.apache /mnt/koji/*
-
 # Generate CA certificate
 pushd /opt/local/pki/koji > /dev/null
 

@@ -12,4 +12,3 @@ ADD sql-init/ /docker-entrypoint-initdb.d/
 
 RUN curl https://pagure.io/koji/raw/master/f/docs/schema.sql \
         -o /docker-entrypoint-initdb.d/00-schema.sql
-
