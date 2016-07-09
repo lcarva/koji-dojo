@@ -20,6 +20,12 @@ services:
         volumes_from:
             - shared-data
 
+    koji-builder:
+        build: koji-builder
+        hostname: koji-builder
+        volumes_from:
+            - shared-data
+
     koji-client:
         build: client
         hostname: koji-client

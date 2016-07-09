@@ -34,6 +34,7 @@ popd > /dev/null
 
 # Generate users certificates
 mkuser.sh kojiweb
+mkuser.sh kojibuilder
 mkuser.sh kojiadmin
 mkuser.sh testadmin
 mkuser.sh testuser
